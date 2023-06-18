@@ -43,43 +43,100 @@ namespace OutputOfGraphs
                 Y = y;
             }
 
-            public PointF PointConstruction()
-            {
-                return new PointF(X, Y);
-            }
-
             public bool IsGap()
             {
                 return X == float.MaxValue && Y == float.MaxValue;
+            }
+            public PointF PointConstruction(MyGraph graph)
+            {
+                return new PointF(X * graph.ScaleX + graph.DisplacementX, -Y * graph.ScaleY + graph.DisplacementY);
             }
         }
 
         class MyGraph
         {
             public List<MyPoint> Points { get; set; }
-            public float ScaleX { get; set; }
-            public float ScaleY { get; set; }
+            public float ScaleX { get; set; } = 10.0f;
+            public float ScaleY { get; set; } = 10.0f;
+            public float DisplacementX { get; set; } = 0.0f;
+            public float DisplacementY { get; set; } = 0.0f;
 
             public MyGraph()
             {
                 Points = new List<MyPoint>();
-                ScaleX = 10.0f;
-                ScaleY = 10.0f;
             }
 
-            public MyGraph(List<MyPoint> points, float scaleX, float scaleY)
+            public MyGraph(List<MyPoint> points)
             {
                 Points = points;
-                ScaleX = scaleX;
-                ScaleY = scaleY;
+            }
+
+            public void AddMyPoint(MyPoint myPoint)
+            {
+                Points.Add(myPoint);
+            }
+
+            public MyPoint this[int index]
+            {
+                get { return Points[index]; }
+                set { Points[index] = value; }
+            }
+
+            public IEnumerator<MyPoint> GetEnumerator()
+            {
+                foreach (MyPoint myPoint in Points)
+                {
+                    yield return myPoint;
+                }
+            }
+
+            public float AbsMaxX()
+            {
+                float absMaxX = float.MinValue;
+                foreach (MyPoint myPoint in Points)
+                {
+                    if (!myPoint.IsGap())
+                    {
+                        if (Math.Abs(myPoint.X) > absMaxX)
+                        {
+                            absMaxX = Math.Abs(myPoint.X);
+                        }
+                    }
+                }
+                return absMaxX;
+            }
+
+            public float AbsMaxY()
+            {
+                float absMaxY = float.MinValue;
+                foreach (MyPoint myPoint in Points)
+                {
+                    if (!myPoint.IsGap())
+                    {
+                        if (Math.Abs(myPoint.Y) > absMaxY)
+                        {
+                            absMaxY = Math.Abs(myPoint.Y);
+                        }
+                    }
+                }
+                return absMaxY;
+            }
+
+            public void PerfectSize(int pictureBoxWidth, int pictureBoxHeight)
+            {
+                ScaleX = (float)(pictureBoxWidth / 2 - 10) / AbsMaxX();
+                ScaleY = (float)(pictureBoxHeight / 2 - 10) / AbsMaxY() ;
             }
         }
+
+        
 
         public MainForm()
         {
             InitializeComponent();
 
             graphsData = new List<List<PointF>>();
+            graphs = new List<MyGraph>();
             centre = new PointF((pictureBox.Width) /2, pictureBox.Height/2);
             gapPoint = new PointF(float.MaxValue, float.MaxValue);
             gapMyPoint = new MyPoint(float.MaxValue, float.MaxValue);
@@ -119,7 +176,6 @@ namespace OutputOfGraphs
             {
                 if (line.Equals("gap"))
                 {
-                    points.Add(gapPoint);
                     myGraph.Points.Add(gapMyPoint);
                 }
                 else
@@ -130,11 +186,14 @@ namespace OutputOfGraphs
                         && Single.TryParse(split[1], out float y)
                         )
                     {
-                        points.Add(new PointF(x, y));
+                        myGraph.Points.Add(new MyPoint(x,y));
                     }
                 }
             }
-            graphsData.Add(points);
+            myGraph.DisplacementX = centre.X;
+            myGraph.DisplacementY = centre.Y;
+            myGraph.PerfectSize(pictureBox.Width, pictureBox.Height);
+            graphs.Add(myGraph);
         }
 
         private void graphs_Paint(object sender, PaintEventArgs e)
@@ -143,15 +202,15 @@ namespace OutputOfGraphs
 
             graphics.Clear(Color.White);
             drawAxis(graphics);
-            for (int i = 0; i < graphsData.Count; i++) 
+            for (int i = 0; i < graphs.Count; i++)
             {
                 if (i == selectGraph)
                 {
-                    drawGraph(graphics, graphsData[i], new Pen(Color.Red, 2f));
-                } 
+                    drawMyGraph(graphics, graphs[i], new Pen(Color.Red, 2f));
+                }
                 else
                 {
-                    drawGraph(graphics, graphsData[i], new Pen(Color.Blue, 2f));
+                    drawMyGraph(graphics, graphs[i], new Pen(Color.Blue, 2f));
                 }
             }
         }
@@ -178,41 +237,69 @@ namespace OutputOfGraphs
             graphics.DrawLine(axisPen, centre.X, 0, centre.X, pictureBox.Height);
 
 
-            for (uint i = 0; i < pictureBox.Width; i += greedSize)
+            for (uint i = 0; i < pictureBox.Width - greedSize; i += greedSize)
             {
                 graphics.DrawLine(axisPen, i, centre.Y - 3, i, centre.Y + 3);
             }
 
-            for (uint i = 0; i < pictureBox.Height; i += greedSize)
+            for (uint i = greedSize; i < pictureBox.Height; i += greedSize)
             {
                 graphics.DrawLine(axisPen, centre.X - 3, i, centre.X + 3, i);
             }
+
+            Font font = new Font(FontFamily.GenericSansSerif, 10);
+            graphics.DrawString("X", font, Brushes.Black, pictureBox.Width - 25, centre.Y - 25);
+            graphics.DrawString("Y", font, Brushes.Black, centre.X + 10, 0);
+
+            PointF[] pointerX = new PointF[] { 
+                new PointF(pictureBox.Width - 3, centre.Y),
+                new PointF(pictureBox.Width - 10, centre.Y - 5),
+                new PointF(pictureBox.Width - 10, centre.Y + 5)
+            };
+
+            PointF[] pointerY = new PointF[] {
+                new PointF(centre.X, 0.0f),
+                new PointF(centre.X - 5, 10),
+                new PointF(centre.X + 5, 10)
+            };
+
+            graphics.FillPolygon(new SolidBrush(Color.Black), pointerX);
+            graphics.FillPolygon(new SolidBrush(Color.Black), pointerY);
+
+            graphics.DrawPolygon(axisPen, pointerX);
+            graphics.DrawPolygon(axisPen, pointerY);
         }
 
-        private void drawGraph(Graphics graphics, List<PointF> points, Pen pen)
+        private void drawMyGraph(Graphics graphics, MyGraph myGraph, Pen pen)
         {
-            for (int i = 0; i < points.Count - 1; i++)
+            for (int i = 0; i < myGraph.Points.Count - 1; i++)
             {
-                if (points[i] != gapPoint && points[i+1] != gapPoint)
-                    graphics.DrawLine(pen, new PointF( points[i].X * scale + centre.X, -points[i].Y * scale + centre.Y), 
-                        new PointF( points[i + 1].X * scale + centre.X, -points[i + 1].Y * scale + centre.Y));
+                if (!myGraph[i].IsGap() && !myGraph[i+1].IsGap())
+                {
+                    graphics.DrawLine(pen, myGraph[i].PointConstruction(myGraph),
+                        myGraph[i+1].PointConstruction(myGraph));
+                }
             }
         }
 
         private void pictureBox_MouseWheel(object sender, MouseEventArgs e)
         {
             int delta = (int)e.Delta;
+            if (isMoving)
+            {
+                if (delta > 0)
+                {
+                    graphs[selectGraph].ScaleX *= 1.25f;
+                    graphs[selectGraph].ScaleY *= 1.25f;
+                }
+                else
+                {
+                    graphs[selectGraph].ScaleX *= 0.8f;
+                    graphs[selectGraph].ScaleY *= 0.8f;
+                }
 
-            if (delta > 0)
-            {
-                if (scale <= 1e6) this.scale *= 1.25f;
-            } 
-            else
-            {
-                this.scale *= 0.8f;
+                redrawGraphs();
             }
-
-            redrawGraphs();
         }
 
         private void pictureBox_MouseDown(object sender, MouseEventArgs e)
@@ -236,11 +323,11 @@ namespace OutputOfGraphs
 
         private int getSelectGraph(Point mouseLocation)
         {
-            for(int i = 0; i < graphsData.Count; i++)
+            for (int i = 0; i < graphs.Count; i++)
             {
-                foreach(PointF point in graphsData[i])
+                foreach (MyPoint point in graphs[i])
                 {
-                    PointF picturePoint = new PointF(point.X * scale + centre.X, -point.Y * scale + centre.Y);
+                    PointF picturePoint = point.PointConstruction(graphs[i]);
                     float distance = (float)Math.Sqrt(Math.Pow(picturePoint.X - mouseLocation.X, 2) + Math.Pow(picturePoint.Y - mouseLocation.Y, 2));
                     if (distance <= 5)
                     {
@@ -264,28 +351,28 @@ namespace OutputOfGraphs
                 switch (e.KeyCode)
                 {
                     case Keys.Up:
-                        graphsData[selectGraph] = moveGraph(graphsData[selectGraph], 0, 1);
+                        moveGraph(graphs[selectGraph], 0, -10);
                         break;
                     case Keys.Down:
-                        graphsData[selectGraph] = moveGraph(graphsData[selectGraph], 0, -1);
+                        moveGraph(graphs[selectGraph], 0, 10);
                         break;
                     case Keys.Left:
-                        graphsData[selectGraph] = moveGraph(graphsData[selectGraph], -1, 0);
+                        moveGraph(graphs[selectGraph], -10, 0);
                         break;
                     case Keys.Right:
-                        graphsData[selectGraph] = moveGraph(graphsData[selectGraph], 1, 0);
+                        moveGraph(graphs[selectGraph], 10, 0);
                         break;
                     case Keys.W:
-                        graphsData[selectGraph] = stretchingGraph(graphsData[selectGraph], 1f, 1.25f);
+                        stretchingGraph(graphs[selectGraph], 1f, 1.25f);
                         break;
                     case Keys.S:
-                        graphsData[selectGraph] = stretchingGraph(graphsData[selectGraph], 1f, 0.8f);
+                        stretchingGraph(graphs[selectGraph], 1f, 0.8f);
                         break;
                     case Keys.D:
-                        graphsData[selectGraph] = stretchingGraph(graphsData[selectGraph], 1.25f, 1f);
+                        stretchingGraph(graphs[selectGraph], 1.25f, 1f);
                         break;
                     case Keys.A:
-                        graphsData[selectGraph] = stretchingGraph(graphsData[selectGraph], 0.8f, 1f);
+                        stretchingGraph(graphs[selectGraph], 0.8f, 1f);
                         break;
                 }
 
@@ -295,16 +382,10 @@ namespace OutputOfGraphs
             }
         }
 
-        private List<PointF> moveGraph(List<PointF> points, int dx, int dy)
+        private void moveGraph(MyGraph myGraph, int dx, int dy)
         {
-            List<PointF> movedPoints = new List<PointF>();
-
-            foreach (PointF point in points)
-            {
-                movedPoints.Add(new PointF(point.X + dx, point.Y + dy));
-            }
-
-            return movedPoints;
+            myGraph.DisplacementX += dx;
+            myGraph.DisplacementY += dy;
         }
 
         private void pictureBox_Click(object sender, EventArgs e)
@@ -312,26 +393,10 @@ namespace OutputOfGraphs
             pictureBox.Focus();
         }
 
-        private List<PointF> stretchingGraph(List<PointF> points, float dx, float dy)
+        private void stretchingGraph(MyGraph myGraph, float dx, float dy)
         {
-            List<PointF> stretcgedPoints = new List<PointF>(points);
-
-            for (int i = 1; i < points.Count; i++)
-            {
-                if (points[i] != gapPoint)
-                {
-                    if ((points[i - 1].X < points[i].X * dx) && dx != 1f)
-                    {
-                        stretcgedPoints[i] = new PointF(stretcgedPoints[i].X * dx, stretcgedPoints[i].Y);
-                    }
-                    if ((points[i - 1].Y < points[i].Y * dy) && dy != 1f)
-                    {
-                        stretcgedPoints[i] = new PointF(stretcgedPoints[i].X, stretcgedPoints[i].Y * dy);
-                    }
-                }
-            }
-
-            return stretcgedPoints;
+            myGraph.ScaleX *= dx;
+            myGraph.ScaleY *= dy;
         }
     }
 }
