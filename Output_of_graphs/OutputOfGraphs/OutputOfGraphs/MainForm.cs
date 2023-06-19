@@ -26,6 +26,8 @@ namespace OutputOfGraphs
         private int selectGraph;
         private bool isMoving;
 
+        Form helpForm;
+
         class MyPoint
         {
             public float X { get; set; }
@@ -144,10 +146,7 @@ namespace OutputOfGraphs
             selectGraph = -1;
             isMoving = false;
 
-            pictureBox.Paint += graphs_Paint;
             pictureBox.MouseWheel += pictureBox_MouseWheel;
-            pictureBox.MouseDown += pictureBox_MouseDown;
-            pictureBox.PreviewKeyDown += pictureBox_PreviewKeyDown;
         }
 
         private void addGraph_Click(object sender, EventArgs e)
@@ -213,6 +212,7 @@ namespace OutputOfGraphs
                     drawMyGraph(graphics, graphs[i], new Pen(Color.Blue, 2f));
                 }
             }
+            LabelInfo();
         }
 
         private void drawAxis(Graphics graphics)
@@ -282,6 +282,26 @@ namespace OutputOfGraphs
             }
         }
 
+        private void LabelInfo()
+        {
+            if (isMoving)
+            {
+                LabelScaleX.Text = "Scale X: " + graphs[selectGraph].ScaleX.ToString();
+                LabelScaleY.Text = "Scale Y: " + graphs[selectGraph].ScaleY.ToString();
+
+                LabelDisplacementX.Text = "Displacement X:" + graphs[selectGraph].DisplacementX.ToString();
+                LabelDisplacementY.Text = "Displacement Y:" + graphs[selectGraph].DisplacementY.ToString();
+            }
+            else
+            {
+                LabelScaleX.Text = "Scale X: ";
+                LabelScaleY.Text = "Scale Y: ";
+
+                LabelDisplacementX.Text = "Displacement X:";
+                LabelDisplacementY.Text = "Displacement Y:";
+            }
+        }
+
         private void pictureBox_MouseWheel(object sender, MouseEventArgs e)
         {
             int delta = (int)e.Delta;
@@ -346,6 +366,11 @@ namespace OutputOfGraphs
 
         private void pictureBox_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
+            if (e.KeyCode == Keys.F1)
+            {
+                helpButton.PerformClick();
+                e.IsInputKey = false;
+            }
             if (isMoving)
             {
                 switch (e.KeyCode)
@@ -374,10 +399,11 @@ namespace OutputOfGraphs
                     case Keys.A:
                         stretchingGraph(graphs[selectGraph], 0.8f, 1f);
                         break;
+                    case Keys.Delete:
+                        delGraph.PerformClick();
+                        break;
                 }
-
                 e.IsInputKey = true;
-
                 redrawGraphs();
             }
         }
@@ -397,6 +423,58 @@ namespace OutputOfGraphs
         {
             myGraph.ScaleX *= dx;
             myGraph.ScaleY *= dy;
+        }
+
+        private void delGraph_Click(object sender, EventArgs e)
+        {
+            if (isMoving)
+            {
+                graphs.RemoveAt(selectGraph);
+                selectGraph = -1;
+                isMoving = false;
+                redrawGraphs();
+            }
+        }
+
+        private void helpButton_Click(object sender, EventArgs e)
+        {
+            helpForm = new Form();
+
+            helpForm.Size = new Size(500, 400);
+            helpForm.FormClosed += helpForm_Closed;
+            helpForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            helpForm.MaximizeBox = false;
+            helpForm.RightToLeftLayout = true;
+            helpForm.Text = "Help";
+
+            Label Keys = new Label();
+            Keys.Text = "↑ - moving up the Y axis\n" +
+                "↓ - moving down the Y axis\n" +
+                "← - move to the left on the X axis\n" +
+                "→ - move to the right on the X axis\n\n" +
+                "W - strething along the Y axis\n" +
+                "S - compression along the Y axis\n" +
+                "D - strething along the X axis\n" +
+                "A - compression along the Y axis\n\n" +
+                "Mouse wheel - whith the mouse wheel you can simultaneously\nincrease/decrease Scale X and Scale Y\n\n" +
+                "'Scale X' - the compression/stretching factor of the graph along the X-axis\n" +
+                "'Scale Y' - the compression/stretching factor of the graph along the Y-axis\n" +
+                "'Displacement X' - coefficient of displacement of the graph along the X-axis\n" +
+                "'Displacement X' - coefficient of displacement of the graph along the X-axis\n\n" +
+                "Add button - allows you ti select data for the graph in the form of a text file\n" +
+                "Del button - deletes the selected graph";
+            Keys.Location = new Point(5, 5);
+            Keys.Font = new Font(Keys.Font.FontFamily, 10);
+            Keys.AutoSize = true;
+            helpForm.Controls.Add(Keys);
+
+            helpForm.ShowDialog();
+        }
+
+        private void helpForm_Closed(object sender, FormClosedEventArgs e)
+        {
+            helpForm.Dispose();
+            helpForm = null;
         }
     }
 }
