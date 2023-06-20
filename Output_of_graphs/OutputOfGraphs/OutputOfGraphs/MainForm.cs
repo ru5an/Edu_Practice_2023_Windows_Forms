@@ -443,7 +443,7 @@ namespace OutputOfGraphs
         {
             helpForm = new Form();
 
-            helpForm.Size = new Size(500, 400);
+            helpForm.Size = new Size(500, 410);
             helpForm.FormClosed += helpForm_Closed;
             helpForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             helpForm.MaximizeBox = false;
@@ -465,7 +465,8 @@ namespace OutputOfGraphs
                 "'Displacement X' - coefficient of displacement of the graph along the X-axis\n" +
                 "'Displacement X' - coefficient of displacement of the graph along the X-axis\n\n" +
                 "Add button - allows you ti select data for the graph in the form of a text file\n" +
-                "Del button - deletes the selected graph";
+                "Del button - deletes the selected graph\n" +
+                "Scale to canvas size - scale the graph to the size of the canvas";
             Keys.Location = new Point(5, 5);
             Keys.Font = new Font(Keys.Font.FontFamily, 10);
             Keys.AutoSize = true;
