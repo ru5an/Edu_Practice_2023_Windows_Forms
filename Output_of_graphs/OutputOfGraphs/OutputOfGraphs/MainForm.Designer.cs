@@ -36,6 +36,7 @@
             this.LabelDisplacementY = new System.Windows.Forms.Label();
             this.delGraph = new System.Windows.Forms.Button();
             this.helpButton = new System.Windows.Forms.Button();
+            this.scalePerfectSize = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox)).BeginInit();
             this.SuspendLayout();
             // 
@@ -127,11 +128,23 @@
             this.helpButton.UseVisualStyleBackColor = true;
             this.helpButton.Click += new System.EventHandler(this.helpButton_Click);
             // 
+            // scalePerfectSize
+            // 
+            this.scalePerfectSize.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.scalePerfectSize.Location = new System.Drawing.Point(699, 48);
+            this.scalePerfectSize.Name = "scalePerfectSize";
+            this.scalePerfectSize.Size = new System.Drawing.Size(197, 29);
+            this.scalePerfectSize.TabIndex = 9;
+            this.scalePerfectSize.Text = "Scale to canvas size";
+            this.scalePerfectSize.UseVisualStyleBackColor = true;
+            this.scalePerfectSize.Click += new System.EventHandler(this.scalePerfectSize_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(908, 453);
+            this.Controls.Add(this.scalePerfectSize);
             this.Controls.Add(this.helpButton);
             this.Controls.Add(this.delGraph);
             this.Controls.Add(this.LabelDisplacementY);
@@ -159,6 +172,7 @@
         private System.Windows.Forms.Label LabelDisplacementY;
         private System.Windows.Forms.Button delGraph;
         private System.Windows.Forms.Button helpButton;
+        private System.Windows.Forms.Button scalePerfectSize;
     }
 }
 

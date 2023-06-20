@@ -15,11 +15,9 @@ namespace OutputOfGraphs
 {
     public partial class MainForm : Form
     {
-        private List<List<PointF>> graphsData;
         private List<MyGraph> graphs;
 
         PointF centre;
-        PointF gapPoint;
         MyPoint gapMyPoint;
 
         private float scale;
@@ -136,11 +134,8 @@ namespace OutputOfGraphs
         public MainForm()
         {
             InitializeComponent();
-
-            graphsData = new List<List<PointF>>();
             graphs = new List<MyGraph>();
             centre = new PointF((pictureBox.Width) /2, pictureBox.Height/2);
-            gapPoint = new PointF(float.MaxValue, float.MaxValue);
             gapMyPoint = new MyPoint(float.MaxValue, float.MaxValue);
             scale = 10.0f;
             selectGraph = -1;
@@ -191,8 +186,10 @@ namespace OutputOfGraphs
             }
             myGraph.DisplacementX = centre.X;
             myGraph.DisplacementY = centre.Y;
-            myGraph.PerfectSize(pictureBox.Width, pictureBox.Height);
             graphs.Add(myGraph);
+            selectGraph = graphs.IndexOf(myGraph);
+            isMoving = true;
+            pictureBox.Focus();
         }
 
         private void graphs_Paint(object sender, PaintEventArgs e)
@@ -276,8 +273,14 @@ namespace OutputOfGraphs
             {
                 if (!myGraph[i].IsGap() && !myGraph[i+1].IsGap())
                 {
-                    graphics.DrawLine(pen, myGraph[i].PointConstruction(myGraph),
-                        myGraph[i+1].PointConstruction(myGraph));
+                    try
+                    {
+                        graphics.DrawLine(pen, myGraph[i].PointConstruction(myGraph),
+                            myGraph[i + 1].PointConstruction(myGraph));
+                    } catch (Exception ex)
+                    {
+                        continue;
+                    }
                 }
             }
         }
@@ -475,6 +478,16 @@ namespace OutputOfGraphs
         {
             helpForm.Dispose();
             helpForm = null;
+        }
+
+        private void scalePerfectSize_Click(object sender, EventArgs e)
+        {
+            if (isMoving)
+            {
+                graphs[selectGraph].PerfectSize(pictureBox.Width, pictureBox.Height);
+                redrawGraphs();
+                pictureBox.Focus();
+            }
         }
     }
 }

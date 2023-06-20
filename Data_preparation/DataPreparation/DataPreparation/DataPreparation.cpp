@@ -4,22 +4,22 @@
 #include <fstream>
 #include <map>
 
+bool isEqual(double a, double b) {
+    double epsilon = 1e-6;
+
+    return std::abs(a - b) <= epsilon;
+}
+
 double F(double x) {
-    if (x > -5 && x < -3) {
+    if (!isEqual(x, -5) && x > -5 && x < -3) {
         return (1. / 8.) * std::sqrt(std::abs(std::sin(3 * x))) * std::cbrt(std::exp(0.15 * x));
     }
-    else if (x <= -5 && x > -7) {
+    else if ((x < -5 && (x > -7 && !isEqual(x, -7))) || isEqual(x, -5)) {
         return std::pow(x, 20);
     }
     else {
         return std::pow(x, -20) - 10;
     }
-}
-
-bool isEqual(double a, double b) {
-    double epsilon = 1e-6;
-
-    return std::abs(a - b) <= epsilon;
 }
 
 std::map<std::string, std::pair<double, double>> inputCMD(int count, char* argv[]) {
@@ -44,15 +44,18 @@ void dataGraph(std::ofstream& outputFile, double lower, double upper) {
     double step = lower;
     while (!isEqual(step, upper + 0.1)) {
 
+        if (isEqual(step, -3))
+            outputFile << "gap\n";
+
         if (!isEqual(step, 0))
             outputFile << step << " " << F(step) << "\n";
         else
             outputFile << "gap\n";
 
-        if (isEqual(step, -5) || isEqual(step, -3) || isEqual(step, -7))
+        if (isEqual(step, -5) || isEqual(step, -7))
             outputFile << "gap\n";
 
-        step += 0.1;
+        step += 0.05;
     }
 }
 
