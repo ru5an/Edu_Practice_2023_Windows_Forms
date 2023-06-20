@@ -11,7 +11,7 @@ bool isEqual(double a, double b) {
 }
 
 double F(double x) {
-    if (!isEqual(x, -5) && x > -5 && x < -3) {
+    if ((!isEqual(x, -5) && x > -5) && (x < -3 && !isEqual(x,-3))) {
         return (1. / 8.) * std::sqrt(std::abs(std::sin(3 * x))) * std::cbrt(std::exp(0.15 * x));
     }
     else if ((x < -5 && (x > -7 && !isEqual(x, -7))) || isEqual(x, -5)) {
@@ -42,7 +42,7 @@ std::map<std::string, std::pair<double, double>> inputCMD(int count, char* argv[
 
 void dataGraph(std::ofstream& outputFile, double lower, double upper) {
     double step = lower;
-    while (!isEqual(step, upper + 0.1)) {
+    while (!isEqual(step, upper + 0.05)) {
 
         if (isEqual(step, -3))
             outputFile << "gap\n";
