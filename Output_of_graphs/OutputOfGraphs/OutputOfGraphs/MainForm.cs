@@ -28,14 +28,8 @@ namespace OutputOfGraphs
 
         class MyPoint
         {
-            public float X { get; set; }
-            public float Y { get; set; }
-
-            public MyPoint()
-            {
-                X = 0.0f;
-                Y = 0.0f;
-            }
+            public float X { get; set; } = 0.0f;
+            public float Y { get; set; } = 0.0f;
 
             public MyPoint(float x, float y)
             {
@@ -90,7 +84,7 @@ namespace OutputOfGraphs
                 }
             }
 
-            public float AbsMaxX()
+            private float AbsMaxX()
             {
                 float absMaxX = float.MinValue;
                 foreach (MyPoint myPoint in Points)
@@ -106,7 +100,7 @@ namespace OutputOfGraphs
                 return absMaxX;
             }
 
-            public float AbsMaxY()
+            private float AbsMaxY()
             {
                 float absMaxY = float.MinValue;
                 foreach (MyPoint myPoint in Points)
@@ -180,7 +174,7 @@ namespace OutputOfGraphs
                         && Single.TryParse(split[1], out float y)
                         )
                     {
-                        myGraph.Points.Add(new MyPoint(x,y));
+                        myGraph.AddMyPoint(new MyPoint(x,y));
                     }
                 }
             }
